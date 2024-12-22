@@ -1,16 +1,18 @@
-from django import  forms
+from django import forms
 from django.core.exceptions import ValidationError
+from django.core.validators import MinLengthValidator, MaxLengthValidator
 from django.utils.deconstruct import deconstructible
+
 from .models import Category, Husband, Women
 
 
 @deconstructible
 class RussianValidator:
-    ALLOWED_CHARS = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя0123456789- '
+    ALLOWED_CHARS = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщбыъэюя0123456789- "
     code = 'russian'
 
     def __init__(self, message=None):
-        self.message= message if message else "Должны присутствовать только русские символы, дефис и пробел."
+        self.message = message if message else "Должны присутствовать только русские символы, дефис и пробел."
 
     def __call__(self, value, *args, **kwargs):
         if not (set(value) <= set(self.ALLOWED_CHARS)):
@@ -18,8 +20,8 @@ class RussianValidator:
 
 
 class AddPostForm(forms.ModelForm):
-    cat = forms.ModelChoiceField(queryset=Category.objects.all(), empty_label='Категория не выбрана', label='Категории')
-    husband = forms.ModelChoiceField(queryset=Husband.objects.all(), empty_label='Не замужем', required=False, label='Муж')
+    cat = forms.ModelChoiceField(queryset=Category.objects.all(), empty_label="Категория не выбрана", label="Категории")
+    husband = forms.ModelChoiceField(queryset=Husband.objects.all(), empty_label="Не замужем", required=False, label="Муж")
 
     class Meta:
         model = Women
@@ -33,9 +35,10 @@ class AddPostForm(forms.ModelForm):
     def clean_title(self):
         title = self.cleaned_data['title']
         if len(title) > 50:
-            raise ValidationError('Длина превышает 50 символов')
+            raise ValidationError("Длина превышает 50 символов")
+
         return title
 
 
 class UploadFileForm(forms.Form):
-    file = forms.FileField(label='Файл')
+    file = forms.ImageField(label="Файл")
