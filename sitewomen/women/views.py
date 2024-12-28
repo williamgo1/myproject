@@ -1,14 +1,14 @@
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
-from django.http import HttpResponse, HttpResponseNotFound, Http404, HttpResponseRedirect, HttpResponsePermanentRedirect
-from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse, reverse_lazy
-from django.template.loader import render_to_string
-from django.template.defaultfilters import slugify
-from django.views import View
-from django.views.generic import TemplateView, ListView, DetailView, FormView, CreateView, UpdateView
+from django.db.transaction import commit
+from django.http import HttpResponse, HttpResponseNotFound
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse_lazy
+from django.views.generic import ListView, DetailView, CreateView, UpdateView
 
-from .forms import AddPostForm, UploadFileForm
-from .models import Women, Category, TagPost, UploadFiles
+from .forms import AddPostForm
+from .models import Women, TagPost
 from .utils import DataMixin
 
 
@@ -21,7 +21,7 @@ class WomenHome(DataMixin, ListView):
     def get_queryset(self):
         return Women.published.all().select_related('cat')
 
-
+@login_required
 def about(request):
     contact_list = Women.published.all()
     paginator = Paginator(contact_list, 3)
@@ -46,10 +46,15 @@ class ShowPost(DataMixin, DetailView):
         return get_object_or_404(Women.published, slug=self.kwargs[self.slug_url_kwarg])
 
 
-class AddPage(DataMixin, CreateView):
+class AddPage(LoginRequiredMixin, DataMixin, CreateView):
     form_class = AddPostForm
     template_name = 'women/addpage.html'
     title_page = 'Добавление статьи'
+
+    def form_valid(self, form):
+        w = form.save(commit=False)
+        w.author = self.request.user
+        return super().form_valid(form)
 
 
 class UpdatePage(DataMixin, UpdateView):

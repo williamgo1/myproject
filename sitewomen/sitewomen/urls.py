@@ -17,14 +17,13 @@ Including another URLconf
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-
 from sitewomen import settings
-from women import views
 from women.views import page_not_found
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('women.urls')),
+    path('users/', include('users.urls', namespace='users')),
     path("__debug__/", include("debug_toolbar.urls")),
 ]
 
